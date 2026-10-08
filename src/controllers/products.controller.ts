@@ -1,25 +1,26 @@
 import { pool } from '../conf/dbConnection';
 
-// GET /getAll
 export const getProducts = async (req: any, res: any) => {
-    try {
-        const [rows]: any = await pool.query(
-            'SELECT * FROM products WHERE active = TRUE'
-        );
+  try {
+    
+    const activeParam = req.query.active !== undefined 
+      ? (req.query.active === 'true' || req.query.active === '1') 
+      : true;
 
-        return res.status(200).json(rows);
+    const [rows]: any = await pool.query(
+      'SELECT * FROM products WHERE active = ?',
+      [activeParam]
+    );
 
-    } catch (error) {
-        console.error(error);
-
-        return res.status(500).json({
-            error: 'Error al obtener los productos'
-        });
-    }
+    return res.status(201).json(rows);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Error al obtener los productos'
+    });
+  }
 };
-
-
-// GET /getById/:id
+// GET :id
 export const getProductById = async (req: any, res: any) => {
     try {
         const { id } = req.params;
@@ -54,9 +55,7 @@ export const getProductById = async (req: any, res: any) => {
         });
     }
 };
-
-
-// POST /create
+// POST create
 export const createProduct = async (req: any, res: any) => {
     try {
         const {
@@ -68,7 +67,7 @@ export const createProduct = async (req: any, res: any) => {
             img
         } = req.body;
 
-        // Validar campos obligatorios
+        // Validar campos 
         if (
             !name ||
             price === undefined ||
@@ -103,7 +102,6 @@ export const createProduct = async (req: any, res: any) => {
             ]
         );
 
-        // Crear correctamente = 201
         return res.status(201).json({
             id: result.insertId,
             name,
@@ -125,7 +123,7 @@ export const createProduct = async (req: any, res: any) => {
 };
 
 
-// PUT /update/:id
+// PUT:id
 export const updateProduct = async (req: any, res: any) => {
     try {
         const { id } = req.params;
@@ -147,7 +145,7 @@ export const updateProduct = async (req: any, res: any) => {
             img
         } = req.body;
 
-        // Validar campos obligatorios
+        // Validar campos 
         if (
             !name ||
             price === undefined ||
@@ -189,7 +187,7 @@ export const updateProduct = async (req: any, res: any) => {
             ]
         );
 
-        // No existe o está inactivo
+        // No existe o inactivo
         if (result.affectedRows === 0) {
             return res.status(404).json({
                 error: 'Producto no encontrado o inactivo'
